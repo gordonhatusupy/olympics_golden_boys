@@ -1,0 +1,57 @@
+<html>
+
+    <head>
+        <script src="d3.min.js"></script>
+    </head>
+    
+    <body>
+        <svg height="5000"></svg>
+        <script>
+        
+            var choose = [1,2];
+            
+            d3.csv('olympics_2012.csv', function(data){
+                
+                console.log(data)
+                
+                var name = 'Italy';
+                
+                function cluster(d) {
+                    
+                            if (d.Sport.substr(0,3) == "Mod" || d.Sport.substr(0,3) == 'Ath' ||  d.Sport.substr(0,3) == 'Tri') {
+                                return "Athletics";
+                            }else if ( d.Sport.substr(0,3) == 'Cyc' ) {
+                                return "Cycling";
+                            }else if ( d.Sport.substr(0,3) == 'Can' ) {
+                                return "Canoe";
+                            }else if ( d.Sport.substr(0,3) == 'Div' || d.Sport.substr(0,3) == 'Wat' || d.Sport.substr(0,3) == 'Syn' || d.Sport.substr(0,4)=="Tram") {
+                                return "Swimming";
+                            }else if ( d.Sport.substr(0,3) == 'Tae' || d.Sport.substr(0,3) == 'Wre' || d.Sport.substr(0,3) == 'Jud') {
+                                return "Martial Arts";
+                            }else if ( d.Sport.substr(0,3) == 'Gym' ) {
+                                return "Gymnastics";
+                            }else if ( d.Sport.substr(0,5) == 'Beach' ) {
+                                return "Volleyball";
+                            }else{
+                                return d.Sport;
+                            }                
+                }
+                
+                var mydata = d3.nest()
+                                .key(function(d){
+                                    return cluster(d);
+                                })
+                                .sortKeys(d3.ascending)
+                                .entries(data)                
+                
+                
+                
+                                
+            });
+        
+        </script>
+    </body>
+
+    
+
+</html>
