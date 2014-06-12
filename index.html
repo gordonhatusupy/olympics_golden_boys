@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css">
+    <script src='../d3.min.js'></script>
+    <meta charset='utf-8'>
+    <title></title>
+</head>
+<body>
+<h1>Project Styleguide(h1)</h1>
+
+<input type="text" name="fname"><br>
+
+<svg id=viz>
+    <filter id="multiply-effect">
+        <feBlend mode="multiply" in1="BackgroundImage" />
+    </filter>
+
+</svg>
+
+<script>
+
+    d3.csv('data/olympics_2012.csv', function(data) {
+
+        var barHeight = 30;
+
+        var elementWidth = 200;
+
+        var sumFemale =  function(d){
+           return d3.sum(d, function(c){
+               return (c.Sex == 'F') ? 1 : 0
+           })
+        };
+
+        var sumMale =  function(d){
+            return d3.sum(d, function(c){
+                return (c.Sex == 'M') ? 1 : 0
+            })
+        };
+
+        var ageBin = function(d, min, max) {
+            return d3.sum(d, function(c){
+                if (parseInt(c.Age) >= min && parseInt(c.Age) < max) {
+                    return 1
+                }
+                else
+                {
+                    return 0
+                }
+            })
+        };
+
+        // TODO Aggregate regular expression
+        var sportData = d3.nest()
+                .key(function (d) {
+                    return d.Sport;
+                })
+                .rollup(function (d) {
+                    return {
+                        female: sumFemale(d),
+                        male: sumMale(d),
+                        to20: ageBin(d, 10, 20),
+                        to30: ageBin(d, 20, 30),
+                        to40: ageBin(d, 30, 40),
+                        to50: ageBin(d, 40, 50),
+                        to60: ageBin(d, 50, 60),
+                        to70: ageBin(d, 60, 70),
+                        to80: ageBin(d, 70, 80),
+                        athletes: d
+                    }
+                })
+                .sortKeys(d3.ascending)
+                .entries(data);
+
+        // This function gets called every time we refilter the data
+
+        function update( _data ) {
+
+            // The scale for the sex graph
+            var scaleSex = d3.scale.linear()
+                    .domain([0, 100])
+                    .range([0, elementWidth]);
+
+            // The scale for the age graph
+            var scaleAge = d3.scale.linear()
+                    .domain([10, 80])
+                    .range([0, elementWidth]);
+
+            var scalePresence = d3.scale.linear()
+                    .domain([0, 100])
+                    .range([0, elementWidth]);
+
+            // initial selection
+            var sports = d3.select('svg')
+                    .selectAll('g')
+                    .data(_data, function(d){
+                        return d.key;
+                    });
+
+            // enter on initial selection
+            sports.enter()
+                    .append('g')
+                    .attr('transform', function(d,i){
+                        return ('translate(0,' + i*21 + ')');
+                    })
+                    .append('text')
+                    .text(function(d){
+                        return d.key;
+
+                    });
+
+            sportsSex = sports.selectAll('text')
+                    .data(function(d, i){
+                        return d.values;
+                    })
+                    .enter()
+                    .append('text')
+                    .attr('transform', 'translate(500, 0)')
+                    .text(function(d){
+                        return 'hello';
+                    });
+
+            // exit on initial selection
+            sports.exit()
+                    .remove();
+
+        }
+
+        // Given a value and the total return the percentage
+        function percentage(value, total) {
+            return (value / total) * 100;
+        }
+
+        update(sportData);
+    });
+
+</script>
+</body>
+</html>
