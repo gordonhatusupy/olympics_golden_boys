@@ -11,11 +11,7 @@
             var choose = [1,2];
             
             d3.csv('olympics_2012.csv', function(data){
-                
-                console.log(data)
-                
-                var name = 'Italy';
-                
+                                                
                 function cluster(d) {
                     
                             if (d.Sport.substr(0,3) == "Mod" || d.Sport.substr(0,3) == 'Ath' ||  d.Sport.substr(0,3) == 'Tri') {
