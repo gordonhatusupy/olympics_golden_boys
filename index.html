@@ -61,6 +61,30 @@
             })
         };
 
+       var sumGold =  function(d){
+            return Math.round( 
+                d3.sum(d, function(c){
+                    return c.Gold;
+                })
+            )                                      
+        };
+
+       var sumSilver =  function(d){
+            return Math.round( 
+                d3.sum(d, function(c){
+                    return c.Silver;
+                })
+            )                                      
+        };  
+
+       var sumBronze =  function(d){
+            return Math.round( 
+                d3.sum(d, function(c){
+                    return c.Bronze;
+                })
+            )                                      
+                };                  
+        
         var ageBin = function(d, min, max) {
             return d3.sum(d, function(c){
                 if (parseInt(c.Age) >= min && parseInt(c.Age) < max) {
@@ -74,7 +98,7 @@
         };
         
         
-        var country = 'Netherlands'; //for testing purposes, needs to be replaced by user choiche
+        var country = 'Italy'; //for testing purposes, needs to be replaced by user choiche
 
         // TODO Aggregate regular expression
         var sportData = d3.nest()
@@ -91,6 +115,9 @@
                     return {
                         female: sumFemale(d),
                         male: sumMale(d),
+                        gold: sumGold(d),
+                        silver: sumSilver(d),
+                        bronze: sumBronze(d),
                         to20: ageBin(d, 10, 20),
                         to30: ageBin(d, 20, 30),
                         to40: ageBin(d, 30, 40),
