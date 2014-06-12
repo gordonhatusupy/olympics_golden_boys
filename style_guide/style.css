@@ -1,0 +1,105 @@
+/* general classes */
+
+body{
+	font-family: 'Source Sans Pro', sans-serif;
+	color:#222;
+}
+.label{
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.chart_title{
+	font-size:14px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: #222;
+	opacity: 0.2;
+}
+
+input{
+	border:1px solid #DDDDDD;
+	height: 20px;
+	margin-left:100px;
+}
+
+#viz{
+/*	height:2000px;
+*/
+}
+
+/* barchart classes*/
+
+.inner_label{
+	fill: #fff;
+	font-size: 12px;
+}
+
+.bar_val_male{
+	fill: #96BBD6;
+}
+
+.bar_val_female{
+	fill: #CC7FB2;
+}
+
+.bar_val_filled{
+	fill: #7A7A7A;
+}
+
+.bar_val_empty{
+	fill: #D3D3D3;
+}
+
+/* medal-chart */
+
+.bronze_medal{
+	fill: #8C753E;
+	opacity: 0.7;
+	filter: url(#multiply-effect);
+}
+.silver_medal{
+	fill: #DBDBDB;
+	opacity: 0.7;
+	filter: url(#multiply-effect);
+}
+.gold_medal{
+	fill: #FFCE00;
+	opacity: 0.7;
+	filter: url(#multiply-effect);
+}
+
+.bronze_total_label{
+	fill: #8C753E;
+	font-weight: bold;
+	font-size:21px;
+}
+
+.silver_total_label{
+	fill: #DBDBDB;
+	font-weight: bold;
+	font-size:21px;
+}
+
+.gold_total_label{
+	fill: #FFCE00;
+	font-weight: bold;
+	font-size:21px;
+}
+/* bubble row classes */
+
+.axis_label{
+	font-size:10px;
+	font-weight: bold;
+	fill: #E2E2E2;
+}
+
+.axis_line, .axis_dot{
+	 fill: #f2f2f2;
+}
+
+.country_circle{
+	fill: #A2D0D6;
+	opacity: 0.7;
+	filter: url(#multiply-effect);
+}
