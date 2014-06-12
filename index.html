@@ -23,6 +23,28 @@
 
     d3.csv('data/olympics_2012.csv', function(data) {
 
+        function cluster(d) {
+
+                    if (d.Sport.substr(0,3) == "Mod" || d.Sport.substr(0,3) == 'Ath' ||  d.Sport.substr(0,3) == 'Tri') {
+                        return "Athletics";
+                    }else if ( d.Sport.substr(0,3) == 'Cyc' ) {
+                        return "Cycling";
+                    }else if ( d.Sport.substr(0,3) == 'Can' ) {
+                        return "Canoe";
+                    }else if ( d.Sport.substr(0,3) == 'Div' || d.Sport.substr(0,3) == 'Wat' || d.Sport.substr(0,3) == 'Syn' || d.Sport.substr(0,4)=="Tram") {
+                        return "Swimming";
+                    }else if ( d.Sport.substr(0,3) == 'Tae' || d.Sport.substr(0,3) == 'Wre' || d.Sport.substr(0,3) == 'Jud') {
+                        return "Martial Arts";
+                    }else if ( d.Sport.substr(0,3) == 'Gym' ) {
+                        return "Gymnastics";
+                    }else if ( d.Sport.substr(0,5) == 'Beach' ) {
+                        return "Volleyball";
+                    }else{
+                        return d.Sport;
+                    }                
+
+        }
+        
         var barHeight = 30;
 
         var elementWidth = 200;
@@ -50,11 +72,20 @@
                 }
             })
         };
+        
+        
+        var country = 'Netherlands'; //for testing purposes, needs to be replaced by user choiche
 
         // TODO Aggregate regular expression
         var sportData = d3.nest()
                 .key(function (d) {
-                    return d.Sport;
+                    if (country == 'All') { //get data for all countries
+                        return cluster(d);
+                    }else { //get data for specific country
+                        if (d.Country == country) {
+                            return cluster(d);
+                        }
+                    }
                 })
                 .rollup(function (d) {
                     return {
@@ -72,6 +103,8 @@
                 })
                 .sortKeys(d3.ascending)
                 .entries(data);
+        
+        console.log(sportData)
 
         // This function gets called every time we refilter the data
 
