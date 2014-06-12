@@ -8,21 +8,37 @@
     <title></title>
 </head>
 <body>
-<h1>Project Styleguide(h1)</h1>
+<h1>The Olympic Golden Boys</h1>
 
-<input type="text" name="fname"><br>
+<div id="inputfield">
+    <input type="text" name="fname"><br>
+</div>
 
-<svg id=viz>
-    <filter id="multiply-effect">
-        <feBlend mode="multiply" in1="BackgroundImage" />
-    </filter>
+<div id="svgcontainer">
+    <svg id="viz">
+        <filter id="multiply-effect">
+            <feBlend mode="multiply" in1="BackgroundImage"/>
+        </filter>
 
-</svg>
+    </svg>
+</div>
 
 <script>
 
     d3.csv('data/olympics_2012.csv', function(data) {
 
+        // Given a value and the total return the percentage
+        function percentage(value, total) {
+            return d3.round((value / total) * 100, 2);
+        }
+
+        // Ugly code to return the athletes per bin
+        function bin(values) {
+            return (values.to20 + ' ' + values.to30 + ' ' + values.to40 + ' ' + values.to50 + ' ' + values.to60 + ' ' + values.to70 + ' ' + values.to80);
+        }
+
+        // Great work! We should see if we can refactor this to a case/switch statement to improve readability and performance if possible
+        // TODO deal with the 'undefined' value
         function cluster(d) {
 
                     if (d.Sport.substr(0,3) == "Mod" || d.Sport.substr(0,3) == 'Ath' ||  d.Sport.substr(0,3) == 'Tri') {
@@ -44,23 +60,29 @@
                     }                
 
         }
-        
+
+
+        // we use this to set a default height for any horizontal bar, so we can change it in a single place
         var barHeight = 30;
 
+        // We use this to set how wide the complete horizontal bar should be, again to change it in a single place
         var elementWidth = 200;
 
+        // How many females?
         var sumFemale =  function(d){
            return d3.sum(d, function(c){
                return (c.Sex == 'F') ? 1 : 0
            })
         };
 
+        // How many males?
         var sumMale =  function(d){
             return d3.sum(d, function(c){
                 return (c.Sex == 'M') ? 1 : 0
             })
         };
 
+        // How many gold medals?
        var sumGold =  function(d){
             return Math.round( 
                 d3.sum(d, function(c){
@@ -69,6 +91,7 @@
             )                                      
         };
 
+        // How many silver medals?
        var sumSilver =  function(d){
             return Math.round( 
                 d3.sum(d, function(c){
@@ -77,6 +100,7 @@
             )                                      
         };  
 
+        // How many bronze medals?
        var sumBronze =  function(d){
             return Math.round( 
                 d3.sum(d, function(c){
@@ -84,7 +108,8 @@
                 })
             )                                      
                 };                  
-        
+
+        // function to return the number of athletes with age between min and max as integers
         var ageBin = function(d, min, max) {
             return d3.sum(d, function(c){
                 if (parseInt(c.Age) >= min && parseInt(c.Age) < max) {
@@ -98,9 +123,9 @@
         };
         
         
-        var country = 'Italy'; //for testing purposes, needs to be replaced by user choiche
+        var country = 'Italy'; //for testing purposes, needs to be replaced by user choice
 
-        // TODO Aggregate regular expression
+        // starting data, clustered and rolled up
         var sportData = d3.nest()
                 .key(function (d) {
                     if (country == 'All') { //get data for all countries
@@ -130,12 +155,16 @@
                 })
                 .sortKeys(d3.ascending)
                 .entries(data);
-        
-        console.log(sportData)
+
+        // post the data to the console for inspection
+        console.log(sportData);
 
         // This function gets called every time we refilter the data
-
         function update( _data ) {
+
+            // we use this to get the total size of the dataset
+            // TODO this needs to update based on the selected country
+            var totalAthletes = data.length;
 
             // The scale for the sex graph
             var scaleSex = d3.scale.linear()
@@ -147,6 +176,7 @@
                     .domain([10, 80])
                     .range([0, elementWidth]);
 
+            // The scale for the sports presence
             var scalePresence = d3.scale.linear()
                     .domain([0, 100])
                     .range([0, elementWidth]);
@@ -154,44 +184,52 @@
             // initial selection
             var sports = d3.select('svg')
                     .selectAll('g')
-                    .data(_data, function(d){
+                    .data(_data, function (d) {
                         return d.key;
                     });
 
             // enter on initial selection
+            // appends groups
             sports.enter()
                     .append('g')
-                    .attr('transform', function(d,i){
-                        return ('translate(0,' + i*21 + ')');
-                    })
-                    .append('text')
-                    .text(function(d){
-                        return d.key;
-
+                    .attr('transform', function (d, i) {
+                        return ('translate(0,' + i * 21 + ')');
                     });
 
-            sportsSex = sports.selectAll('text')
-                    .data(function(d, i){
-                        return d.values;
-                    })
-                    .enter()
-                    .append('text')
-                    .attr('transform', 'translate(500, 0)')
-                    .text(function(d){
-                        return 'hello';
+            // add the sports
+            sports.append('text')
+                    .text(function (d) {
+                        return d.key;
+                    });
+
+            // add the female to male numbers
+            sports.append('text')
+                    .attr('x', '200')
+                    .text(function (d) {
+                        return (d.values.female + ' to ' + d.values.male);
+                    });
+
+            // add the total presence of the sport
+            sports.append('text')
+                    .attr('x', '400')
+                    .text(function (d) {
+                        return (d.values.athletes.length + ' of ' + totalAthletes + ' (' + percentage(d.values.athletes.length, totalAthletes) + ')' );
+                    });
+
+            // add the binned ages
+            sports.append('text')
+                    .attr('x', '600')
+                    .text(function (d) {
+                        return bin(d.values);
                     });
 
             // exit on initial selection
             sports.exit()
                     .remove();
-
         }
 
-        // Given a value and the total return the percentage
-        function percentage(value, total) {
-            return (value / total) * 100;
-        }
-
+        // This actually draws our graph by triggering the update function
+        // TODO wrap this in a binding to the user interface element, for selection to work
         update(sportData);
     });
 
