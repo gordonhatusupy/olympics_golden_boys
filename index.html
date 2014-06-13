@@ -32,6 +32,17 @@
             return d3.round((value / total) * 100, 2);
         }
 
+        // Return percentage of females/males
+        function fm_percentage(d, str) {
+            var total = d.values.female + d.values.male;
+            if (str=="f") {//returns female percentage
+                value = d.values.female;
+            }else if (str=="m"){//
+                value = d.values.male;
+            }
+            return value / total * 100.;
+        }                
+        
         // Ugly code to return the athletes per bin
         function bin(values) {
             return (values.to20 + ' ' + values.to30 + ' ' + values.to40 + ' ' + values.to50 + ' ' + values.to60 + ' ' + values.to70 + ' ' + values.to80);
@@ -196,6 +207,39 @@
                         return ('translate(0,' + i * 21 + ')');
                     });
 
+            var x_gender = 100.;
+            
+            //visualize male percentage rectangles
+            sports.append("rect")
+					.attr("width", function(d,i) { 
+                        return fm_percentage(d, "m"); 
+                    })
+					.attr("height", 10)
+					.attr("y", function(d,i) {
+                        return -10;
+                    })
+					.attr("x", x_gender)
+					.attr("fill", "black")
+					.attr("stroke","black")
+					.attr("stroke-width",0.5)
+            
+            //visualize female percentage rectangles
+            sports.append("rect")
+					.attr("width", function(d,i) { 
+                        return fm_percentage(d, "f"); 
+                    })
+					.attr("height", 10)
+					.attr("y", function(d,i) {
+                        return -10;
+                    })
+					.attr("x", function(d) {
+                        return x_gender + fm_percentage(d,"m");    
+                    })
+					.attr("fill", "white")
+					.attr("stroke","black")
+					.attr("stroke-width",0.5)            
+            
+            
             // add the sports
             sports.append('text')
                     .text(function (d) {
@@ -203,11 +247,11 @@
                     });
 
             // add the female to male numbers
-            sports.append('text')
-                    .attr('x', '200')
-                    .text(function (d) {
-                        return (d.values.female + ' to ' + d.values.male);
-                    });
+//            sports.append('text')
+//                    .attr('x', '200')
+//                    .text(function (d) {
+//                        return (d.values.female + ' to ' + d.values.male);
+//                    });
 
             // add the total presence of the sport
             sports.append('text')
