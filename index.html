@@ -389,32 +389,26 @@
 					.attr("width", function(d,i) { 
                         return fm_percentage(d, "m"); 
                     })
-					.attr("height", 10)
+					.attr("height", 20)
 					.attr("y", function(d,i) {
                         return -10;
                     })
 					.attr("x", x_gender)
-					.attr("fill", "black")
-					.attr("stroke","black")
-					.attr("stroke-width",0.5)
+					.attr("class", "bar_val_male")
             
             //visualize female percentage rectangles
             sports.append("rect")
 					.attr("width", function(d,i) { 
                         return fm_percentage(d, "f"); 
                     })
-					.attr("height", 10)
+					.attr("height", 20)
 					.attr("y", function(d,i) {
                         return -10;
                     })
 					.attr("x", function(d) {
                         return x_gender + fm_percentage(d,"m");    
                     })
-					.attr("fill", "white")
-					.attr("stroke","black")
-					.attr("stroke-width",0.5)     
-            
-                      
+                    .attr("class", "bar_val_female")    
             
 //----------- ADD BARS FOR ATHLETES REPRESENTATION ------
             //visualize percentage number of athletes
@@ -422,30 +416,26 @@
 					.attr("width", function(d,i) { 
                         return ratio_athletes(d); 
                     })
-					.attr("height", 10)
+					.attr("height", 20)
 					.attr("y", function(d,i) {
                         return -10;
                     })
 					.attr("x", x_repr)
-					.attr("fill", "black")
-					.attr("stroke","black")
-					.attr("stroke-width",0.5)
+                    .attr("class", "bar_val_filled");
             
             //visualize remaining bar for number of athletes
             sports.append("rect")
 					.attr("width", function(d,i) { 
                         return 100 - ratio_athletes(d); 
                     })
-					.attr("height", 10)
+					.attr("height", 20)
 					.attr("y", function(d,i) {
                         return -10;
                     })
 					.attr("x", function(d) {
                         return x_repr + ratio_athletes(d);    
                     })
-					.attr("fill", "white")
-					.attr("stroke","black")
-					.attr("stroke-width",0.5)                 
+                    .attr("class", "bar_val_empty");               
              
 //---------------------------------------------------------------------
 //           // add the sports
