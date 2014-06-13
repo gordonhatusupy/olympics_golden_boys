@@ -154,7 +154,7 @@
         
             
         // starting data, clustered and rolled up
-        var sportData = d3.nest()
+        var _sportData = d3.nest()
                 .key(function (d) {
                     if (country == 'All') { //get data for all countries
                         var filter = 0;
@@ -187,6 +187,11 @@
                 })
                 .sortKeys(d3.ascending)
                 .entries(data);
+        
+        var sportData = []
+        _sportData.forEach(function(d){
+            if(d.key != 'other') sportData.push(d)
+        })
                 
         function sum_athletes(d) { //sum athletes within sport
 		      var sum = 0;
@@ -381,10 +386,7 @@
 
             
             //visualize male percentage rectangles
-            sports.filter(function(d){
-                        return (d.key != 'other')
-                    })
-                    .append("rect")
+            sports.append("rect")
 					.attr("width", function(d,i) { 
                         return fm_percentage(d, "m"); 
                     })
@@ -398,10 +400,7 @@
 					.attr("stroke-width",0.5)
             
             //visualize female percentage rectangles
-            sports.filter(function(d){
-                        return (d.key != 'other')
-                    })
-                    .append("rect")
+            sports.append("rect")
 					.attr("width", function(d,i) { 
                         return fm_percentage(d, "f"); 
                     })
@@ -420,10 +419,7 @@
             
 //----------- ADD BARS FOR ATHLETES REPRESENTATION ------
             //visualize percentage number of athletes
-            sports.filter(function(d){
-                        return (d.key != 'other')
-                    })
-                    .append("rect")
+            sports.append("rect")
 					.attr("width", function(d,i) { 
                         return ratio_athletes(d); 
                     })
@@ -437,10 +433,7 @@
 					.attr("stroke-width",0.5)
             
             //visualize remaining bar for number of athletes
-            sports.filter(function(d){
-                        return (d.key != 'other')
-                    })
-                    .append("rect")
+            sports.append("rect")
 					.attr("width", function(d,i) { 
                         return 100 - ratio_athletes(d); 
                     })
@@ -457,10 +450,7 @@
              
 //---------------------------------------------------------------------
 //           // add the sports
-            sports.filter(function(d){
-                        return (d.key != 'other')
-                    })
-                    .append('text')
+            sports.append('text')
             // add the sports + medals
             sports.append('text')
                     .text(function (d) {
@@ -475,11 +465,11 @@
 //                    });
 
             // add the total presence of the sport
-            sports.append('text')
-                    .attr('x', '400')
-                    .text(function (d) {
-                        return (d.values.athletes.length + ' of ' + totalAthletes + ' (' + percentage(d.values.athletes.length, totalAthletes) + ')' );
-                    });
+//            sports.append('text')
+//                    .attr('x', '400')
+//                    .text(function (d) {
+//                        return (d.values.athletes.length + ' of ' + totalAthletes + ' (' + percentage(d.values.athletes.length, totalAthletes) + ')' );
+//                    });
 
             // add the binned ages
             var sportsAgeContainer = sports.selectAll('g')
