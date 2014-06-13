@@ -28,9 +28,13 @@ input{
 }
 
 #viz{
-	height:2000px;
+/*	height:2000px;
     width:800px;
 
+*/}
+#medal_graph{
+	width:960px;
+	height:200px;
 }
 
 /* barchart classes*/

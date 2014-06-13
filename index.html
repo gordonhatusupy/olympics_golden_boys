@@ -19,11 +19,20 @@
         <filter id="multiply-effect">
             <feBlend mode="multiply" in1="BackgroundImage"/>
         </filter>
+    </svg>
+ </div>
+
+ <div id="svgcontainer2">
+    <svg id="medal_graph">
 
     </svg>
 </div>
 
 <script>
+    
+    var x_gender = 150.; //position of first bar chart
+    var x_repr = 300.; //position of second bar chart
+
 
     d3.csv('data/olympics_2012.csv', function(data) {
 
@@ -37,7 +46,7 @@
             var total = d.values.female + d.values.male;
             if (str=="f") {//returns female percentage
                 value = d.values.female;
-            }else if (str=="m"){//
+            }else if (str=="m"){//returns male percentage
                 value = d.values.male;
             }
             return value / total * 100.;
@@ -45,7 +54,8 @@
         
         // Ugly code to return the athletes per bin
         function bin(values) {
-            return (values.to20 + ' ' + values.to30 + ' ' + values.to40 + ' ' + values.to50 + ' ' + values.to60 + ' ' + values.to70 + ' ' + values.to80);
+            var array = [values.to20, values.to30, values.to40, values.to50, values.to60, values.to70, values.to80];
+            return array;
         }
 
         // Great work! We should see if we can refactor this to a case/switch statement to improve readability and performance if possible
@@ -74,10 +84,13 @@
 
 
         // we use this to set a default height for any horizontal bar, so we can change it in a single place
-        var barHeight = 30;
+        var barHeight = 50;
 
         // We use this to set how wide the complete horizontal bar should be, again to change it in a single place
         var elementWidth = 200;
+
+        // We use this to set how wide each age bin should be
+        var binWidth = 30;
 
         // How many females?
         var sumFemale =  function(d){
@@ -118,7 +131,7 @@
                     return c.Bronze;
                 })
             )                                      
-                };                  
+                };
 
         // function to return the number of athletes with age between min and max as integers
         var ageBin = function(d, min, max) {
@@ -134,16 +147,22 @@
         };
         
         
-        var country = 'Italy'; //for testing purposes, needs to be replaced by user choice
-
+        var country = 'Spain'; //for testing purposes, needs to be replaced by user choice
+        
+        
+            
         // starting data, clustered and rolled up
-        var sportData = d3.nest()
+        var _sportData = d3.nest()
                 .key(function (d) {
                     if (country == 'All') { //get data for all countries
+                        var filter = 0;
                         return cluster(d);
                     }else { //get data for specific country
                         if (d.Country == country) {
                             return cluster(d);
+                        }
+                        else{ //return empty array
+                            return "other";
                         }
                     }
                 })
@@ -166,6 +185,46 @@
                 })
                 .sortKeys(d3.ascending)
                 .entries(data);
+        
+        var sportData = []
+        _sportData.forEach(function(d){
+            if(d.key != 'other') sportData.push(d)
+        })
+                
+        function sum_athletes(d) { //sum athletes within sport
+		      var sum = 0;
+		      for(var i = 0; i < d.length; i++){
+                  var nmale = d[i].values.male
+                  var nfemale = d[i].values.female
+                  if ( d[i].key != 'other') {
+			         sum += nmale + nfemale; 
+                  }
+		      }
+		      return sum;            
+        }
+                            
+        var n_athletes = sum_athletes(sportData);
+
+        function ratio_athletes(d) {
+            var ratio =  ( d.values.female + d.values.male ) / n_athletes * 100.;
+            return ratio;
+        }
+        var bins = d3.range(7).map(function(d){
+            return (d * 10) + 10;
+        });
+
+        function countMedals(dataset) {
+            console.log(dataset)
+            var sumG = 0.;            
+            var sumS = 0.;
+            var sumB = 0.;
+            for (i=0; i<dataset.length; i++){
+                sumG += dataset[i].values.gold;
+                sumS += dataset[i].values.silver;
+                sumB += dataset[i].values.bronze;
+            }
+            return [sumG, sumS, sumB];
+        }
 
         // post the data to the console for inspection
         console.log(sportData);
@@ -184,63 +243,204 @@
 
             // The scale for the age graph
             var scaleAge = d3.scale.linear()
-                    .domain([10, 80])
-                    .range([0, elementWidth]);
+                    .domain([0, 100])
+                    .range([1, 100]);
+
+            var scaleAgeY = d3.scale.linear()
+                    .domain([0, 10])
+                    .range([1, barHeight]);
+
+            var AgeAxisY = d3.svg.axis()
+                    .scale(scaleAgeY)
+                    .ticks(2)
+                    .orient('left');
 
             // The scale for the sports presence
             var scalePresence = d3.scale.linear()
                     .domain([0, 100])
                     .range([0, elementWidth]);
 
+
+            d3.selectAll('svg')
+                    .attr('width', '1024')
+                    .attr('height', function(d){
+                        return ((_data.length * barHeight) + barHeight);
+                    });
+
             // initial selection
-            var sports = d3.select('svg')
+
+            var nmedals = countMedals(_data);
+            console.log(nmedals[0])
+            var ngold = nmedals[0];
+            var nsilver = nmedals[1];
+            var nbronze = nmedals[2];
+
+            console.log(ngold)
+
+            var ncircleG = [];
+            for(var i=0; i<ngold; i++){
+                ncircleG[i] = i;
+            }
+            var ncircleS = [];
+            for(var i=0; i<nsilver; i++){
+                ncircleS[i] = i;
+            }
+            var ncircleB = [];
+            for(var i=0; i<nbronze; i++){
+                ncircleB[i] = i;
+            }
+
+            console.log(ncircleG)
+
+            var sports = d3.select('#viz')
                     .selectAll('g')
                     .data(_data, function (d) {
                         return d.key;
+                    })
+                    
+
+            d3.select('#viz')
+                    .selectAll('g')
+                    .data(bins)
+                    .enter()
+                    .append('text')
+                    .text(function(d){
+                        return d;
+                    })
+                    .attr('x', function(d,i){
+                        return ((600 + (binWidth/4)) + (i * (binWidth + 10)));
+                    })
+                    .attr('y', function(d){
+                        return d3.select('svg').attr('height');
                     });
+
+            var medal_graph_gold = d3.select('#medal_graph')
+                    .selectAll('circle')
+                    .data(ncircleG, function (d, i) {
+                        return i
+                    });
+
+            var medal_graph_silver = d3.select('#medal_graph')
+                    .selectAll('circle')
+                    .data(ncircleS, function (d, i) {
+                        return i
+                    });
+
+            var medal_graph_bronze = d3.select('#medal_graph')
+                    .selectAll('circle')
+                    .data(ncircleB, function (d, i) {
+                        return i
+                    });
+
+            var blaat = [0, 1, 2]
+            var medal_graph_label = d3.select('#medal_graph')
+                    .selectAll('g')
+                    .data(blaat, function(d, i){
+                        return d
+                    })
 
             // enter on initial selection
             // appends groups
+            // console.log(ncircle)
+            medal_graph_label.enter()
+                    .append('text')
+                    .data(blaat)
+                    .text("medal_type")
+                    .attr('y', function(d, i){
+                        return 25 + (i * 20)
+                    })
+
+            medal_graph_gold.enter()
+                    .append('circle')
+                    .attr('class', 'gold_medal')
+                    .attr('r', 4)
+                    .attr('cy', 20)
+                    .attr('cx', function (d, i){
+                        return 20 + (i * 4) 
+                    })
+
+            medal_graph_silver.enter()
+                    .append('circle')
+                    .attr('class', 'silver_medal')
+                    .attr('r', 4)
+                    .attr('cy', 40)
+                    .attr('cx', function (d, i){
+                        return 20 + (i * 4) 
+                    })
+
+            medal_graph_silver.enter()
+                    .append('circle')
+                    .attr('class', 'bronze_medal')
+                    .attr('r', 4)
+                    .attr('cy', 60)
+                    .attr('cx', function (d, i){
+                        return 20 + (i * 4) 
+                    })
+
             sports.enter()
                     .append('g')
                     .attr('transform', function (d, i) {
-                        return ('translate(0,' + i * 21 + ')');
+                        return ('translate(0,' + ((i * barHeight) + barHeight) + ')');
                     });
 
-            var x_gender = 100.;
             
             //visualize male percentage rectangles
             sports.append("rect")
 					.attr("width", function(d,i) { 
                         return fm_percentage(d, "m"); 
                     })
-					.attr("height", 10)
+					.attr("height", 20)
 					.attr("y", function(d,i) {
                         return -10;
                     })
 					.attr("x", x_gender)
-					.attr("fill", "black")
-					.attr("stroke","black")
-					.attr("stroke-width",0.5)
+					.attr("class", "bar_val_male")
             
             //visualize female percentage rectangles
             sports.append("rect")
 					.attr("width", function(d,i) { 
                         return fm_percentage(d, "f"); 
                     })
-					.attr("height", 10)
+					.attr("height", 20)
 					.attr("y", function(d,i) {
                         return -10;
                     })
 					.attr("x", function(d) {
                         return x_gender + fm_percentage(d,"m");    
                     })
-					.attr("fill", "white")
-					.attr("stroke","black")
-					.attr("stroke-width",0.5)            
+                    .attr("class", "bar_val_female")    
             
+//----------- ADD BARS FOR ATHLETES REPRESENTATION ------
+            //visualize percentage number of athletes
+            sports.append("rect")
+					.attr("width", function(d,i) { 
+                        return ratio_athletes(d); 
+                    })
+					.attr("height", 20)
+					.attr("y", function(d,i) {
+                        return -10;
+                    })
+					.attr("x", x_repr)
+                    .attr("class", "bar_val_filled");
             
-            // add the sports
+            //visualize remaining bar for number of athletes
+            sports.append("rect")
+					.attr("width", function(d,i) { 
+                        return 100 - ratio_athletes(d); 
+                    })
+					.attr("height", 20)
+					.attr("y", function(d,i) {
+                        return -10;
+                    })
+					.attr("x", function(d) {
+                        return x_repr + ratio_athletes(d);    
+                    })
+                    .attr("class", "bar_val_empty");               
+             
+//---------------------------------------------------------------------
+//           // add the sports
+            sports.append('text')
+            // add the sports + medals
             sports.append('text')
                     .text(function (d) {
                         return d.key;
@@ -254,18 +454,48 @@
 //                    });
 
             // add the total presence of the sport
-            sports.append('text')
-                    .attr('x', '400')
-                    .text(function (d) {
-                        return (d.values.athletes.length + ' of ' + totalAthletes + ' (' + percentage(d.values.athletes.length, totalAthletes) + ')' );
-                    });
+//            sports.append('text')
+//                    .attr('x', '400')
+//                    .text(function (d) {
+//                        return (d.values.athletes.length + ' of ' + totalAthletes + ' (' + percentage(d.values.athletes.length, totalAthletes) + ')' );
+//                    });
 
             // add the binned ages
-            sports.append('text')
-                    .attr('x', '600')
-                    .text(function (d) {
-                        return bin(d.values);
+            var sportsAgeContainer = sports.selectAll('g')
+                    .data(function (d){
+                        return [d.values];
+                   });
+
+            // add a group to the container for every sport
+            sportsAgeContainer.enter()
+                    .append('g');
+
+            // this is the binding between the age bin container and the binned data
+            var sportsAgeBin = sportsAgeContainer.selectAll('g')
+                    .data(function (d){
+                        return bin(d);
                     });
+
+            // This draws the bars in the age bin
+            sportsAgeBin.enter()
+                    .append('rect')
+                    .attr('height', function (d, i) {
+                        return scaleAgeY(d);
+                    })
+                    .attr('y', function(d, i){
+                        return -scaleAgeY(d);
+                    })
+                    .attr('x', function(d, i){
+                        return 600 + (i* (binWidth + 10));
+                    })
+                    .attr('width', binWidth)
+                    .attr('class', 'bar_val_filled');
+
+            sportsAgeContainer.append('g')
+                    .attr('transform', function(d){
+                        return ('translate(600,' + (-barHeight) +')')
+                    })
+                    .call(AgeAxisY);
 
             // exit on initial selection
             sports.exit()
