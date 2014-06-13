@@ -84,15 +84,13 @@
 
 
         // we use this to set a default height for any horizontal bar, so we can change it in a single place
-        var barHeight = 30;
+        var barHeight = 50;
 
         // We use this to set how wide the complete horizontal bar should be, again to change it in a single place
         var elementWidth = 200;
 
         // We use this to set how wide each age bin should be
         var binWidth = 30;
-
-        var chartHeight = 500;
 
         // How many females?
         var sumFemale =  function(d){
@@ -249,12 +247,13 @@
                     .range([1, 100]);
 
             var scaleAgeY = d3.scale.linear()
-                    .domain([0, 80])
-                    .range([1, 100]);
+                    .domain([0, 10])
+                    .range([1, barHeight]);
 
             var AgeAxisY = d3.svg.axis()
                     .scale(scaleAgeY)
-                    .orient('bottom');
+                    .ticks(2)
+                    .orient('left');
 
             // The scale for the sports presence
             var scalePresence = d3.scale.linear()
@@ -491,13 +490,22 @@
             sportsAgeBin.enter()
                     .append('rect')
                     .attr('height', function (d, i) {
-                        return scaleAge(d);
+                        return scaleAgeY(d);
+                    })
+                    .attr('y', function(d, i){
+                        return -scaleAgeY(d);
                     })
                     .attr('x', function(d, i){
                         return 600 + (i* (binWidth + 10));
                     })
                     .attr('width', binWidth)
                     .attr('class', 'bar_val_filled');
+
+            sportsAgeContainer.append('g')
+                    .attr('transform', function(d){
+                        return ('translate(600,' + (-barHeight) +')')
+                    })
+                    .call(AgeAxisY);
 
             // exit on initial selection
             sports.exit()
