@@ -19,8 +19,9 @@
         <filter id="multiply-effect">
             <feBlend mode="multiply" in1="BackgroundImage"/>
         </filter>
-
     </svg>
+
+    <svg id="medal_graph"></svg>
 </div>
 
 <script>
@@ -128,7 +129,7 @@
                     return c.Bronze;
                 })
             )                                      
-                };                  
+                };
 
         // function to return the number of athletes with age between min and max as integers
         var ageBin = function(d, min, max) {
@@ -205,8 +206,21 @@
             return (d * 10) + 10;
         });
 
+        function countMedals(dataset) {
+            console.log(dataset)
+            var sumG = 0.;            
+            var sumS = 0.;
+            var sumB = 0.;
+            for (i=0; i<dataset.length; i++){
+                sumG += dataset[i].values.gold;
+                sumS += dataset[i].values.silver;
+                sumB += dataset[i].values.bronze;
+            }
+            return [sumG, sumS, sumB];
+        }
+
         // post the data to the console for inspection
-        // console.log(sportData);
+        console.log(sportData);
 
         // This function gets called every time we refilter the data
         function update( _data ) {
@@ -246,6 +260,30 @@
                     });
 
             // initial selection
+
+            var nmedals = countMedals(_data);
+            console.log(nmedals[0])
+            var ngold = nmedals[0];
+            var nsilver = nmedals[1];
+            var nbronze = nmedals[2];
+
+            console.log(ngold)
+
+            var ncircleG = [];
+            for(var i=0; i<ngold; i++){
+                ncircleG[i] = i;
+            }
+            var ncircleS = [];
+            for(var i=0; i<nsilver; i++){
+                ncircleS[i] = i;
+            }
+            var ncircleB = [];
+            for(var i=0; i<nbronze; i++){
+                ncircleB[i] = i;
+            }
+
+            console.log(ncircleG)
+
             var sports = d3.select('svg')
                     .selectAll('g')
                     .data(_data, function (d) {
@@ -268,8 +306,69 @@
                         return d3.select('svg').attr('height');
                     });
 
+            var medal_graph_gold = d3.select('#medal_graph')
+                    .selectAll('circle')
+                    .data(ncircleG, function (d, i) {
+                        return i
+                    });
+
+            var medal_graph_silver = d3.select('#medal_graph')
+                    .selectAll('circle')
+                    .data(ncircleS, function (d, i) {
+                        return i
+                    });
+
+            var medal_graph_bronze = d3.select('#medal_graph')
+                    .selectAll('circle')
+                    .data(ncircleB, function (d, i) {
+                        return i
+                    });
+
+            var blaat = [0, 1, 2]
+            var medal_graph_label = d3.select('#medal_graph')
+                    .selectAll('g')
+                    .data(blaat, function(d, i){
+                        return d
+                    })
+
             // enter on initial selection
             // appends groups
+            // console.log(ncircle)
+            medal_graph_label.enter()
+                    .append('text')
+                    .data(blaat)
+                    .text("medal_type")
+                    .attr('y', function(d, i){
+                        return 25 + (i * 20)
+                    })
+
+            medal_graph_gold.enter()
+                    .append('circle')
+                    .attr('class', 'gold_medal')
+                    .attr('r', 4)
+                    .attr('cy', 20)
+                    .attr('cx', function (d, i){
+                        return 20 + (i * 4) 
+                    })
+
+            medal_graph_silver.enter()
+                    .append('circle')
+                    .attr('class', 'silver_medal')
+                    .attr('r', 4)
+                    .attr('cy', 40)
+                    .attr('cx', function (d, i){
+                        return 20 + (i * 4) 
+                    })
+
+            medal_graph_silver.enter()
+                    .append('circle')
+                    .attr('class', 'bronze_medal')
+                    .attr('r', 4)
+                    .attr('cy', 60)
+                    .attr('cx', function (d, i){
+                        return 20 + (i * 4) 
+                    })
+
             sports.enter()
                     .append('g')
                     .attr('transform', function (d, i) {
@@ -358,6 +457,8 @@
                         return (d.key != 'other')
                     })
                     .append('text')
+            // add the sports + medals
+            sports.append('text')
                     .text(function (d) {
                         return d.key;
                     });
