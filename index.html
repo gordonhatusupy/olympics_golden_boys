@@ -69,6 +69,11 @@
         // We use this to set how wide the complete horizontal bar should be, again to change it in a single place
         var elementWidth = 200;
 
+        // We use this to set how wide each age bin should be
+        var binWidth = 30;
+
+        var chartHeight = 500;
+
         // How many females?
         var sumFemale =  function(d){
            return d3.sum(d, function(c){
@@ -123,7 +128,6 @@
             })
         };
         
-        
         var country = 'Italy'; //for testing purposes, needs to be replaced by user choice
 
         // starting data, clustered and rolled up
@@ -157,6 +161,10 @@
                 .sortKeys(d3.ascending)
                 .entries(data);
 
+        var bins = d3.range(7).map(function(d){
+            return (d * 10) + 10;
+        });
+
         // post the data to the console for inspection
         // console.log(sportData);
 
@@ -175,12 +183,27 @@
             // The scale for the age graph
             var scaleAge = d3.scale.linear()
                     .domain([0, 100])
-                    .range([0, 100]);
+                    .range([1, 100]);
+
+            var scaleAgeY = d3.scale.linear()
+                    .domain([0, 80])
+                    .range([1, 100]);
+
+            var AgeAxisY = d3.svg.axis()
+                    .scale(scaleAgeY)
+                    .orient('bottom');
 
             // The scale for the sports presence
             var scalePresence = d3.scale.linear()
                     .domain([0, 100])
                     .range([0, elementWidth]);
+
+
+            d3.select('svg')
+                    .attr('width', '1024')
+                    .attr('height', function(d){
+                        return ((_data.length * barHeight) + barHeight);
+                    });
 
             // initial selection
             var sports = d3.select('svg')
@@ -189,12 +212,27 @@
                         return d.key;
                     });
 
+            d3.select('svg')
+                    .selectAll('g')
+                    .data(bins)
+                    .enter()
+                    .append('text')
+                    .text(function(d){
+                        return d;
+                    })
+                    .attr('x', function(d,i){
+                        return ((600 + (binWidth/4)) + (i * (binWidth + 10)));
+                    })
+                    .attr('y', function(d){
+                        return d3.select('svg').attr('height');
+                    });
+
             // enter on initial selection
             // appends groups
             sports.enter()
                     .append('g')
                     .attr('transform', function (d, i) {
-                        return ('translate(0,' + i * 21 + ')');
+                        return ('translate(0,' + ((i * barHeight) + barHeight) + ')');
                     });
 
             // add the sports
@@ -240,9 +278,9 @@
                         return scaleAge(d);
                     })
                     .attr('x', function(d, i){
-                        return 600 + (i*20);
+                        return 600 + (i* (binWidth + 10));
                     })
-                    .attr('width', 10)
+                    .attr('width', binWidth)
                     .attr('class', 'bar_val_filled');
 
             // exit on initial selection
