@@ -20,8 +20,12 @@
             <feBlend mode="multiply" in1="BackgroundImage"/>
         </filter>
     </svg>
+ </div>
 
-    <svg id="medal_graph"></svg>
+ <div id="svgcontainer2">
+    <svg id="medal_graph">
+
+    </svg>
 </div>
 
 <script>
@@ -253,7 +257,7 @@
                     .range([0, elementWidth]);
 
 
-            d3.select('svg')
+            d3.selectAll('svg')
                     .attr('width', '1024')
                     .attr('height', function(d){
                         return ((_data.length * barHeight) + barHeight);
@@ -284,14 +288,14 @@
 
             console.log(ncircleG)
 
-            var sports = d3.select('svg')
+            var sports = d3.select('#viz')
                     .selectAll('g')
                     .data(_data, function (d) {
                         return d.key;
                     })
                     
 
-            d3.select('svg')
+            d3.select('#viz')
                     .selectAll('g')
                     .data(bins)
                     .enter()
