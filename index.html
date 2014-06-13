@@ -3,7 +3,7 @@
 <head>
     <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="style.css">
-    <script src='../d3.min.js'></script>
+    <script src='lib/d3.min.js'></script>
     <meta charset='utf-8'>
     <title></title>
 </head>
@@ -24,6 +24,10 @@
 </div>
 
 <script>
+    
+    var x_gender = 150.; //position of first bar chart
+    var x_repr = 300.; //position of second bar chart
+
 
     d3.csv('data/olympics_2012.csv', function(data) {
 
@@ -32,6 +36,17 @@
             return d3.round((value / total) * 100, 2);
         }
 
+        // Return percentage of females/males
+        function fm_percentage(d, str) {
+            var total = d.values.female + d.values.male;
+            if (str=="f") {//returns female percentage
+                value = d.values.female;
+            }else if (str=="m"){//returns male percentage
+                value = d.values.male;
+            }
+            return value / total * 100.;
+        }                
+        
         // Ugly code to return the athletes per bin
         function bin(values) {
             var array = [values.to20, values.to30, values.to40, values.to50, values.to60, values.to70, values.to80];
@@ -128,16 +143,23 @@
             })
         };
         
-        var country = 'Italy'; //for testing purposes, needs to be replaced by user choice
-
+        
+        var country = 'Spain'; //for testing purposes, needs to be replaced by user choice
+        
+        
+            
         // starting data, clustered and rolled up
         var sportData = d3.nest()
                 .key(function (d) {
                     if (country == 'All') { //get data for all countries
+                        var filter = 0;
                         return cluster(d);
                     }else { //get data for specific country
                         if (d.Country == country) {
                             return cluster(d);
+                        }
+                        else{ //return empty array
+                            return "other";
                         }
                     }
                 })
@@ -160,7 +182,25 @@
                 })
                 .sortKeys(d3.ascending)
                 .entries(data);
+                
+        function sum_athletes(d) { //sum athletes within sport
+		      var sum = 0;
+		      for(var i = 0; i < d.length; i++){
+                  var nmale = d[i].values.male
+                  var nfemale = d[i].values.female
+                  if ( d[i].key != 'other') {
+			         sum += nmale + nfemale; 
+                  }
+		      }
+		      return sum;            
+        }
+                            
+        var n_athletes = sum_athletes(sportData);
 
+        function ratio_athletes(d) {
+            var ratio =  ( d.values.female + d.values.male ) / n_athletes * 100.;
+            return ratio;
+        }
         var bins = d3.range(7).map(function(d){
             return (d * 10) + 10;
         });
@@ -210,7 +250,8 @@
                     .selectAll('g')
                     .data(_data, function (d) {
                         return d.key;
-                    });
+                    })
+                    
 
             d3.select('svg')
                     .selectAll('g')
@@ -235,18 +276,98 @@
                         return ('translate(0,' + ((i * barHeight) + barHeight) + ')');
                     });
 
-            // add the sports
-            sports.append('text')
+            
+            //visualize male percentage rectangles
+            sports.filter(function(d){
+                        return (d.key != 'other')
+                    })
+                    .append("rect")
+					.attr("width", function(d,i) { 
+                        return fm_percentage(d, "m"); 
+                    })
+					.attr("height", 10)
+					.attr("y", function(d,i) {
+                        return -10;
+                    })
+					.attr("x", x_gender)
+					.attr("fill", "black")
+					.attr("stroke","black")
+					.attr("stroke-width",0.5)
+            
+            //visualize female percentage rectangles
+            sports.filter(function(d){
+                        return (d.key != 'other')
+                    })
+                    .append("rect")
+					.attr("width", function(d,i) { 
+                        return fm_percentage(d, "f"); 
+                    })
+					.attr("height", 10)
+					.attr("y", function(d,i) {
+                        return -10;
+                    })
+					.attr("x", function(d) {
+                        return x_gender + fm_percentage(d,"m");    
+                    })
+					.attr("fill", "white")
+					.attr("stroke","black")
+					.attr("stroke-width",0.5)     
+            
+                      
+            
+//----------- ADD BARS FOR ATHLETES REPRESENTATION ------
+            //visualize percentage number of athletes
+            sports.filter(function(d){
+                        return (d.key != 'other')
+                    })
+                    .append("rect")
+					.attr("width", function(d,i) { 
+                        return ratio_athletes(d); 
+                    })
+					.attr("height", 10)
+					.attr("y", function(d,i) {
+                        return -10;
+                    })
+					.attr("x", x_repr)
+					.attr("fill", "black")
+					.attr("stroke","black")
+					.attr("stroke-width",0.5)
+            
+            //visualize remaining bar for number of athletes
+            sports.filter(function(d){
+                        return (d.key != 'other')
+                    })
+                    .append("rect")
+					.attr("width", function(d,i) { 
+                        return 100 - ratio_athletes(d); 
+                    })
+					.attr("height", 10)
+					.attr("y", function(d,i) {
+                        return -10;
+                    })
+					.attr("x", function(d) {
+                        return x_repr + ratio_athletes(d);    
+                    })
+					.attr("fill", "white")
+					.attr("stroke","black")
+					.attr("stroke-width",0.5)                 
+             
+//---------------------------------------------------------------------
+//           // add the sports
+            sports.filter(function(d){
+                        return (d.key != 'other')
+                    })
+                    .append('text')
                     .text(function (d) {
                         return d.key;
                     });
 
             // add the female to male numbers
-            sports.append('text')
-                    .attr('x', '200')
-                    .text(function (d) {
-                        return (d.values.female + ' to ' + d.values.male);
-                    });
+//            sports.append('text')
+//                    .attr('x', '200')
+//                    .text(function (d) {
+//                        return (d.values.female + ' to ' + d.values.male);
+//                    });
 
             // add the total presence of the sport
             sports.append('text')
