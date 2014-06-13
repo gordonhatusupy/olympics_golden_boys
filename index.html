@@ -34,7 +34,8 @@
 
         // Ugly code to return the athletes per bin
         function bin(values) {
-            return (values.to20 + ' ' + values.to30 + ' ' + values.to40 + ' ' + values.to50 + ' ' + values.to60 + ' ' + values.to70 + ' ' + values.to80);
+            var array = [values.to20, values.to30, values.to40, values.to50, values.to60, values.to70, values.to80];
+            return array;
         }
 
         // Great work! We should see if we can refactor this to a case/switch statement to improve readability and performance if possible
@@ -157,7 +158,7 @@
                 .entries(data);
 
         // post the data to the console for inspection
-        console.log(sportData);
+        // console.log(sportData);
 
         // This function gets called every time we refilter the data
         function update( _data ) {
@@ -173,8 +174,8 @@
 
             // The scale for the age graph
             var scaleAge = d3.scale.linear()
-                    .domain([10, 80])
-                    .range([0, elementWidth]);
+                    .domain([0, 100])
+                    .range([0, 100]);
 
             // The scale for the sports presence
             var scalePresence = d3.scale.linear()
@@ -217,11 +218,32 @@
                     });
 
             // add the binned ages
-            sports.append('text')
-                    .attr('x', '600')
-                    .text(function (d) {
-                        return bin(d.values);
+            var sportsAgeContainer = sports.selectAll('g')
+                    .data(function (d){
+                        return [d.values];
+                   });
+
+            // add a group to the container for every sport
+            sportsAgeContainer.enter()
+                    .append('g');
+
+            // this is the binding between the age bin container and the binned data
+            var sportsAgeBin = sportsAgeContainer.selectAll('g')
+                    .data(function (d){
+                        return bin(d);
                     });
+
+            // This draws the bars in the age bin
+            sportsAgeBin.enter()
+                    .append('rect')
+                    .attr('height', function (d, i) {
+                        return scaleAge(d);
+                    })
+                    .attr('x', function(d, i){
+                        return 600 + (i*20);
+                    })
+                    .attr('width', 10)
+                    .attr('class', 'bar_val_filled');
 
             // exit on initial selection
             sports.exit()
